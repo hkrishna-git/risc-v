@@ -11,9 +11,9 @@ const int BLOCK_SIZE = 32;
 using namespace std;
 using namespace std::chrono;
 
-// Initialize with random values
-void fillRandDataInMatrix(vector<vector<float>> &mat) {
-    for (int i = 0; i < N; ++i) {
+// Helper to initialize matrix with random values
+void fillMatrix(vector<vector<float>> &mat) {
+    for (float i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
             mat[i][j] = static_cast<float>(rand()) / RAND_MAX;
         }
@@ -32,9 +32,7 @@ void multiply(const vector<vector<float>> &A, const vector<vector<float>> &B, ve
 }
 
 #ifdef OPTIMIZE
-#pragma GCC push_options
-#pragma GCC optimize ("O3,unroll-loops")
-#pragma GCC target ("avx,avx2,fma")
+__attribute__((target("arch=+zve64f")))
 // matrix multiplication with loop tiling
 void blockMultiply(const vector<vector<float>> &A, const vector<vector<float>> &B, vector<vector<float>> &C) {
     for (int i1 = 0; i1 < N; i1 += BLOCK_SIZE) {
@@ -51,17 +49,17 @@ void blockMultiply(const vector<vector<float>> &A, const vector<vector<float>> &
         }
     }
 }
-#pragma GCC pop_options
 #endif
 
 int main() {
+    cout << "Function : " << __FUNCTION__ << endl;
     vector<vector<float>> A(N, vector<float>(N));
     vector<vector<float>> B(N, vector<float>(N));
     vector<vector<float>> C(N, vector<float>(N, 0));
     vector<vector<float>> C_blocked(N, vector<float>(N, 0));
 
-    fillRandDataInMatrix(A);
-    fillRandDataInMatrix(B);
+    fillMatrix(A);
+    fillMatrix(B);
 
     // Benchmark native
     auto start_native = high_resolution_clock::now();
